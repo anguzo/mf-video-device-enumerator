@@ -18,7 +18,7 @@ namespace MFVideoDeviceEnumeratorWpfApp
 
         private void OnApplicationExit(object sender, ExitEventArgs e)
         {
-            // _viewModel.Dispose();
+            _viewModel.Dispose();
         }
     }
 }
