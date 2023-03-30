@@ -1,0 +1,144 @@
+﻿<Window x:Class="MFVideoDeviceEnumeratorWpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mfVideoDeviceEnumeratorWpfApp="clr-namespace:MFVideoDeviceEnumeratorWpfApp"
+        xmlns:common="clr-namespace:MFVideoDeviceEnumeratorWpfApp.Enumerator.Common"
+        d:DataContext="{d:DesignInstance Type=mfVideoDeviceEnumeratorWpfApp:MainWindowViewModel, IsDesignTimeCreatable=False}"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="720" Width="1280">
+    <Window.Resources>
+        <mfVideoDeviceEnumeratorWpfApp:ObjectToPropertyListConverter x:Key="ObjectToPropertyListConverter" />
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <ItemsControl Grid.Column="0" ItemsSource="{Binding WmiDevices}">
+            <ItemsControl.Template>
+                <ControlTemplate TargetType="ItemsControl">
+                    <ScrollViewer>
+                        <ItemsPresenter />
+                    </ScrollViewer>
+                </ControlTemplate>
+            </ItemsControl.Template>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type common:IVideoDevice}">
+                    <Border BorderThickness="1" CornerRadius="8" BorderBrush="Black" Margin="5">
+                        <StackPanel Orientation="Vertical">
+                            <Expander IsExpanded="True" Margin="5" Header="{Binding}">
+                                <ItemsControl ItemsSource="{Binding Formats}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type common:IVideoFormat}">
+                                            <Border BorderThickness="1" CornerRadius="8" BorderBrush="Black" Margin="5">
+                                                <ItemsControl Margin="5"
+                                                              ItemsSource="{Binding Converter={StaticResource ObjectToPropertyListConverter}}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <TextBox Text="{Binding  Mode=OneWay}" BorderThickness="0"
+                                                                     IsReadOnly="True" />
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Expander>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <ItemsControl Grid.Column="1" ItemsSource="{Binding CimDevices}">
+            <ItemsControl.Template>
+                <ControlTemplate TargetType="ItemsControl">
+                    <ScrollViewer>
+                        <ItemsPresenter />
+                    </ScrollViewer>
+                </ControlTemplate>
+            </ItemsControl.Template>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type common:IVideoDevice}">
+                    <Border BorderThickness="1" CornerRadius="8" BorderBrush="Black" Margin="5">
+                        <StackPanel Orientation="Vertical">
+                            <Expander IsExpanded="True" Margin="5" Header="{Binding}">
+                                <ItemsControl ItemsSource="{Binding Formats}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type common:IVideoFormat}">
+                                            <Border BorderThickness="1" CornerRadius="8" BorderBrush="Black" Margin="5">
+                                                <ItemsControl Margin="5"
+                                                              ItemsSource="{Binding Converter={StaticResource ObjectToPropertyListConverter}}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <TextBox Text="{Binding  Mode=OneWay}" BorderThickness="0"
+                                                                     IsReadOnly="True" />
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Expander>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <ItemsControl Grid.Column="2" ItemsSource="{Binding WinRtDevices}">
+            <ItemsControl.Template>
+                <ControlTemplate TargetType="ItemsControl">
+                    <ScrollViewer>
+                        <ItemsPresenter />
+                    </ScrollViewer>
+                </ControlTemplate>
+            </ItemsControl.Template>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type common:IVideoDevice}">
+                    <Border BorderThickness="1" CornerRadius="8" BorderBrush="Black" Margin="5">
+                        <StackPanel Orientation="Vertical">
+                            <Expander IsExpanded="True" Margin="5" Header="{Binding}">
+                                <ItemsControl ItemsSource="{Binding Formats}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type common:IVideoFormat}">
+                                            <Border BorderThickness="1" CornerRadius="8" BorderBrush="Black" Margin="5">
+                                                <ItemsControl Margin="5"
+                                                              ItemsSource="{Binding Converter={StaticResource ObjectToPropertyListConverter}}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <TextBox Text="{Binding  Mode=OneWay}" BorderThickness="0"
+                                                                     IsReadOnly="True" />
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Expander>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
+</Window>
