@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq;
+using System.Diagnostics;
 using System.Management;
-using System.Windows.Data;
 using MFVideoDeviceEnumeratorWpfApp.Enumerator.Common;
 using SharpGen.Runtime;
 using Vortice.MediaFoundation;
 
 namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.WMI
 {
-    public class VideoDeviceEnumerator : IDisposable
+    public class WmiVideoDeviceManager : VideoDeviceManager, IDisposable
     {
         public const string Namespace = @"root\cimv2";
 
@@ -19,12 +17,10 @@ namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.WMI
         private static readonly Guid KsCategoryVideoCamera =
             new Guid(0xe5323777, 0xf976, 0x4f5b, 0x9b, 0x55, 0xb9, 0x46, 0x99, 0xc4, 0x6e, 0x44);
 
-
         private readonly ManagementEventWatcher _usbWatcher;
 
-        public VideoDeviceEnumerator()
+        public WmiVideoDeviceManager()
         {
-            BindingOperations.EnableCollectionSynchronization(VideoDevices, new object());
             EnumerateVideoDevices();
 
             var creationQuery =
@@ -40,9 +36,6 @@ namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.WMI
             _usbWatcher.Start();
         }
 
-        public ObservableCollection<IVideoDevice> VideoDevices { get; } =
-            new ObservableCollection<IVideoDevice>();
-
         public void Dispose()
         {
             _usbWatcher.EventArrived -= OnUsbCameraEvent;
@@ -50,41 +43,45 @@ namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.WMI
             _usbWatcher?.Dispose();
         }
 
-        private void OnUsbCameraEvent(object sender, EventArrivedEventArgs e)
+        private void OnUsbCameraEvent(object sender, EventArrivedEventArgs eventArgs)
         {
-            switch (e.NewEvent.ClassPath.ClassName)
+            switch (eventArgs.NewEvent.ClassPath.ClassName)
             {
                 case "__InstanceCreationEvent":
                 {
-                    var targetInstance = e.NewEvent.Properties["TargetInstance"];
+                    var targetInstance = eventArgs.NewEvent.Properties["TargetInstance"];
                     var win32PnpProperties = ((ManagementBaseObject)targetInstance.Value).Properties;
                     var friendlyName = win32PnpProperties["Caption"].Value.ToString();
                     var deviceId = win32PnpProperties["DeviceID"].Value.ToString()?.Replace("\\", "#").ToLower();
                     var symbolicLink = $"\\\\?\\{deviceId}#{{{KsCategoryVideoCamera}}}\\global";
                     try
                     {
-                        VideoDevices.Add(new MiVideoDevice(friendlyName, symbolicLink));
+                        Add(new MiVideoDevice(friendlyName, symbolicLink));
                     }
-                    catch (SharpGenException)
+                    catch (SharpGenException e)
                     {
+                        Debug.WriteLine(e);
                     }
 
                     break;
                 }
                 case "__InstanceDeletionEvent":
                 {
-                    var targetInstance = e.NewEvent.Properties["TargetInstance"];
+                    var targetInstance = eventArgs.NewEvent.Properties["TargetInstance"];
                     var win32PnpProperties = ((ManagementBaseObject)targetInstance.Value).Properties;
                     var deviceId = win32PnpProperties["DeviceID"].Value.ToString()?.Replace("\\", "#").ToLower();
+                    var symbolicLink = $"\\\\?\\{deviceId}#{{{KsCategoryVideoCamera}}}\\global";
                     try
                     {
-                        VideoDevices.Remove(VideoDevices.First(vd => vd.SymbolicLink.Contains(deviceId)));
+                        Remove(symbolicLink);
                     }
-                    catch (InvalidOperationException)
+                    catch (InvalidOperationException e)
                     {
+                        Debug.WriteLine(e);
                     }
-                    catch (SharpGenException)
+                    catch (SharpGenException e)
                     {
+                        Debug.WriteLine(e);
                     }
 
                     break;
@@ -96,7 +93,7 @@ namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.WMI
         {
             var mfVideoDevices = MediaFactory.MFEnumVideoDeviceSources();
             foreach (var mfVideoDevice in mfVideoDevices)
-                VideoDevices.Add(new MiVideoDevice(mfVideoDevice.FriendlyName,
+                Add(new MiVideoDevice(mfVideoDevice.FriendlyName,
                     mfVideoDevice.SymbolicLink));
         }
     }

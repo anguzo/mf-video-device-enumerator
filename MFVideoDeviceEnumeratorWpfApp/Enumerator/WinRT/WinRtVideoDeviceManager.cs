@@ -1,21 +1,18 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Windows.Data;
+using System.IO;
+using System.Runtime.InteropServices;
 using Windows.Devices.Enumeration;
 using MFVideoDeviceEnumeratorWpfApp.Enumerator.Common;
 
 namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.WinRT
 {
-    public class VideoDeviceEnumerator : IDisposable
+    public class WinRtVideoDeviceManager : VideoDeviceManager, IDisposable
     {
         private readonly DeviceWatcher _deviceWatcher;
 
-        public VideoDeviceEnumerator()
+        public WinRtVideoDeviceManager()
         {
-            BindingOperations.EnableCollectionSynchronization(VideoDevices, new object());
-
             _deviceWatcher = DeviceInformation.CreateWatcher(DeviceClass.VideoCapture);
 
             _deviceWatcher.Added += UsbCameraAdded;
@@ -25,7 +22,6 @@ namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.WinRT
             _deviceWatcher.Start();
         }
 
-        public ObservableCollection<IVideoDevice> VideoDevices { get; } = new ObservableCollection<IVideoDevice>();
 
         public void Dispose()
         {
@@ -34,23 +30,37 @@ namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.WinRT
 
         private async void UsbCameraAdded(DeviceWatcher sender, DeviceInformation args)
         {
-            VideoDevices.Add(await WinRtVideoDevice.CreateInstanceAsync(args.Name, args.Id));
+            try
+            {
+                var device = await WinRtVideoDevice.CreateInstanceAsync(args.Name, args.Id);
+                Add(device);
+            }
+            catch (COMException e)
+            {
+                Debug.WriteLine(e);
+            }
+            catch (DirectoryNotFoundException e)
+            {
+                Debug.WriteLine(e);
+            }
         }
 
         private void UsbCameraRemoved(DeviceWatcher sender, DeviceInformationUpdate args)
         {
             try
             {
-                VideoDevices.Remove(VideoDevices.First(vd => vd.SymbolicLink == args.Id));
+                Remove(args.Id);
             }
             catch (InvalidOperationException e)
             {
+                Debug.WriteLine(e);
             }
         }
 
         private void UsbCameraUpdated(DeviceWatcher sender, DeviceInformationUpdate args)
         {
-            Debug.WriteLine("USB camera updated: " + args.Id);
+            if (TryFind(args.Id, out var device)) return;
+            // device.DevicePropertiesChanged();
         }
     }
 }

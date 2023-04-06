@@ -29,7 +29,7 @@
                 <DataTemplate DataType="{x:Type common:IVideoDevice}">
                     <Border BorderThickness="1" CornerRadius="8" BorderBrush="Black" Margin="5">
                         <StackPanel Orientation="Vertical">
-                            <Expander IsExpanded="True" Margin="5" Header="{Binding}">
+                            <Expander IsExpanded="False" Margin="5" Header="{Binding}">
                                 <ItemsControl ItemsSource="{Binding Formats}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -70,7 +70,7 @@
                 <DataTemplate DataType="{x:Type common:IVideoDevice}">
                     <Border BorderThickness="1" CornerRadius="8" BorderBrush="Black" Margin="5">
                         <StackPanel Orientation="Vertical">
-                            <Expander IsExpanded="True" Margin="5" Header="{Binding}">
+                            <Expander IsExpanded="False" Margin="5" Header="{Binding}">
                                 <ItemsControl ItemsSource="{Binding Formats}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -111,7 +111,7 @@
                 <DataTemplate DataType="{x:Type common:IVideoDevice}">
                     <Border BorderThickness="1" CornerRadius="8" BorderBrush="Black" Margin="5">
                         <StackPanel Orientation="Vertical">
-                            <Expander IsExpanded="True" Margin="5" Header="{Binding}">
+                            <Expander IsExpanded="False" Margin="5" Header="{Binding}">
                                 <ItemsControl ItemsSource="{Binding Formats}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Windows.Media.Capture;
 using Windows.Media.MediaProperties;
 using MFVideoDeviceEnumeratorWpfApp.Enumerator.Common;
-using VideoFormat = MFVideoDeviceEnumeratorWpfApp.Enumerator.Common.VideoFormat;
 
 namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.WinRT
 {

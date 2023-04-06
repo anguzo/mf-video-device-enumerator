@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Windows.Data;
 using MFVideoDeviceEnumeratorWpfApp.Enumerator.Common;
 using Microsoft.Management.Infrastructure;
 using Microsoft.Management.Infrastructure.Options;
@@ -11,7 +8,7 @@ using Vortice.MediaFoundation;
 
 namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.CIM
 {
-    public class VideoDeviceEnumerator : IDisposable
+    public class CimVideoDeviceManager : VideoDeviceManager, IDisposable
     {
         public const string Namespace = @"root\cimv2";
         public const string QueryDialect = "WQL";
@@ -24,9 +21,8 @@ namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.CIM
 
         private readonly CimSession _cimSession;
 
-        public VideoDeviceEnumerator()
+        public CimVideoDeviceManager()
         {
-            BindingOperations.EnableCollectionSynchronization(VideoDevices, new object());
             EnumerateVideoDevices();
 
             var options = new DComSessionOptions { Impersonation = ImpersonationType.Impersonate };
@@ -34,13 +30,10 @@ namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.CIM
 
             var cimSubscriptionResultsCreation = _cimSession.SubscribeAsync(Namespace, QueryDialect, QueryExpression);
 
-            var creationWatcher = new UsbObserver(VideoDevices);
+            var creationWatcher = new UsbObserver(Add, Remove);
 
             cimSubscriptionResultsCreation.Subscribe(creationWatcher);
         }
-
-        public ObservableCollection<IVideoDevice> VideoDevices { get; } =
-            new ObservableCollection<IVideoDevice>();
 
         public void Dispose()
         {
@@ -52,17 +45,19 @@ namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.CIM
         {
             var mfVideoDevices = MediaFactory.MFEnumVideoDeviceSources();
             foreach (var mfVideoDevice in mfVideoDevices)
-                VideoDevices.Add(new MiVideoDevice(mfVideoDevice.FriendlyName,
+                Add(new MiVideoDevice(mfVideoDevice.FriendlyName,
                     mfVideoDevice.SymbolicLink));
         }
 
         private class UsbObserver : IObserver<CimSubscriptionResult>
         {
-            private readonly ObservableCollection<IVideoDevice> _videoDevices;
+            private readonly Action<IVideoDevice> _addDevice;
+            private readonly Action<string> _removeDevice;
 
-            public UsbObserver(ObservableCollection<IVideoDevice> videoDevices)
+            public UsbObserver(Action<IVideoDevice> addDevice, Action<string> removeDevice)
             {
-                _videoDevices = videoDevices;
+                _addDevice = addDevice;
+                _removeDevice = removeDevice;
             }
 
             public void OnCompleted()
@@ -88,10 +83,11 @@ namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.CIM
                         var symbolicLink = $"\\\\?\\{deviceId}#{{{KsCategoryVideoCamera}}}\\global";
                         try
                         {
-                            _videoDevices.Add(new MiVideoDevice(friendlyName, symbolicLink));
+                            _addDevice(new MiVideoDevice(friendlyName, symbolicLink));
                         }
-                        catch (SharpGenException)
+                        catch (SharpGenException e)
                         {
+                            Debug.WriteLine(e);
                         }
 
                         break;
@@ -101,15 +97,18 @@ namespace MFVideoDeviceEnumeratorWpfApp.Enumerator.CIM
                         var targetInstance = value.Instance.CimInstanceProperties["TargetInstance"];
                         var win32PnpProperties = ((CimInstance)targetInstance.Value).CimInstanceProperties;
                         var deviceId = win32PnpProperties["DeviceID"].Value.ToString()?.Replace("\\", "#").ToLower();
+                        var symbolicLink = $"\\\\?\\{deviceId}#{{{KsCategoryVideoCamera}}}\\global";
                         try
                         {
-                            _videoDevices.Remove(_videoDevices.First(vd => vd.SymbolicLink.Contains(deviceId)));
+                            _removeDevice(symbolicLink);
                         }
-                        catch (InvalidOperationException)
+                        catch (InvalidOperationException e)
                         {
+                            Debug.WriteLine(e);
                         }
-                        catch (SharpGenException)
+                        catch (SharpGenException e)
                         {
+                            Debug.WriteLine(e);
                         }
 
                         break;
